@@ -25,6 +25,21 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const AES_SECRET = process.env.AES_SECRET || 'fallback_secret_key_123';
 
+// Simple in-memory cache to reduce DB load on public endpoints
+const cache = {};
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+function getCache(key) {
+    const entry = cache[key];
+    if (entry && (Date.now() - entry.ts) < CACHE_TTL_MS) return entry.data;
+    return null;
+}
+function setCache(key, data) {
+    cache[key] = { data, ts: Date.now() };
+}
+function clearCache(key) {
+    delete cache[key];
+}
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -231,9 +246,14 @@ app.get('/api/courses', authenticateToken, async (req, res) => {
     }
 });
 
-// 7. Get Public Courses (No Auth)
+// 7. Get Public Courses (No Auth) - cached
 app.get('/api/public/courses', async (req, res) => {
     try {
+        const cached = getCache('public_courses');
+        if (cached) {
+            res.set('Cache-Control', 'public, max-age=300');
+            return res.status(200).json(cached);
+        }
         const [courses] = await pool.execute(`
             SELECT c.*, COUNT(e.id) as enrollment_count
             FROM courses c
@@ -242,15 +262,26 @@ app.get('/api/public/courses', async (req, res) => {
             ORDER BY enrollment_count DESC, c.id ASC
         `);
         if (courses.length > 0) courses[0].is_bestseller = true;
-        res.status(200).json({ courses });
+        const payload = { courses };
+        setCache('public_courses', payload);
+        res.set('Cache-Control', 'public, max-age=300');
+        res.status(200).json(payload);
     } catch (error) { res.status(500).json({ error: 'Database Error' }); }
 });
 
-// 8. Get Public Faculty (No Auth)
+// 8. Get Public Faculty (No Auth) - cached
 app.get('/api/public/faculty', async (req, res) => {
     try {
+        const cached = getCache('public_faculty');
+        if (cached) {
+            res.set('Cache-Control', 'public, max-age=300');
+            return res.status(200).json(cached);
+        }
         const [faculty] = await pool.execute('SELECT * FROM faculty ORDER BY id ASC');
-        res.status(200).json({ faculty });
+        const payload = { faculty };
+        setCache('public_faculty', payload);
+        res.set('Cache-Control', 'public, max-age=300');
+        res.status(200).json(payload);
     } catch (error) { res.status(500).json({ error: 'Database Error' }); }
 });
 
@@ -272,6 +303,7 @@ app.post('/api/admin/courses', authenticateAdmin, async (req, res) => {
         const { title, description, price, features } = req.body;
         if (!title || !price) return res.status(400).json({ error: 'Title and price are required' });
         await pool.execute('INSERT INTO courses (title, description, price, features) VALUES (?, ?, ?, ?)', [title, description, price, features || '']);
+        clearCache('public_courses');
         res.status(201).json({ message: 'Course created successfully' });
     } catch (error) { res.status(500).json({ error: 'Database Error' }); }
 });
@@ -284,6 +316,7 @@ app.put('/api/admin/courses/:id', authenticateAdmin, async (req, res) => {
         if (!title || !price) return res.status(400).json({ error: 'Title and price are required' });
         
         await pool.execute('UPDATE courses SET title=?, description=?, price=?, features=? WHERE id=?', [title, description, price, features || '', courseId]);
+        clearCache('public_courses');
         res.status(200).json({ message: 'Course updated successfully' });
     } catch (error) { res.status(500).json({ error: 'Database Error' }); }
 });
@@ -292,6 +325,7 @@ app.put('/api/admin/courses/:id', authenticateAdmin, async (req, res) => {
 app.delete('/api/admin/courses/:id', authenticateAdmin, async (req, res) => {
     try {
         await pool.execute('DELETE FROM courses WHERE id=?', [req.params.id]);
+        clearCache('public_courses');
         res.status(200).json({ message: 'Course deleted successfully' });
     } catch (error) { res.status(500).json({ error: 'Database Error' }); }
 });
@@ -311,6 +345,7 @@ app.post('/api/admin/faculty', authenticateAdmin, upload.single('image'), async 
         if (!name || !subject) return res.status(400).json({ error: 'Name and subject are required' });
         const image_url = req.file ? `assets/img/faculty/${req.file.filename}` : 'assets/img/hero-graphic.png';
         await pool.execute('INSERT INTO faculty (name, subject, bio, image_url) VALUES (?, ?, ?, ?)', [name, subject, bio || '', image_url]);
+        clearCache('public_faculty');
         res.status(201).json({ message: 'Faculty created successfully' });
     } catch (error) { res.status(500).json({ error: 'Database Error' }); }
 });
@@ -331,6 +366,7 @@ app.put('/api/admin/faculty/:id', authenticateAdmin, upload.single('image'), asy
         }
         
         await pool.execute(query, params);
+        clearCache('public_faculty');
         res.status(200).json({ message: 'Faculty updated successfully' });
     } catch (error) { res.status(500).json({ error: 'Database Error' }); }
 });
@@ -339,6 +375,7 @@ app.put('/api/admin/faculty/:id', authenticateAdmin, upload.single('image'), asy
 app.delete('/api/admin/faculty/:id', authenticateAdmin, async (req, res) => {
     try {
         await pool.execute('DELETE FROM faculty WHERE id=?', [req.params.id]);
+        clearCache('public_faculty');
         res.status(200).json({ message: 'Faculty deleted successfully' });
     } catch (error) { res.status(500).json({ error: 'Database Error' }); }
 });
