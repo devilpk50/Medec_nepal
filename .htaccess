@@ -3,7 +3,7 @@
 # DO NOT add RewriteRules pointing to server.js — that serves it as a static file!
 
 PassengerEnabled on
-PassengerNodejs /usr/local/bin/node
+PassengerNodejs /home/connectf/nodevenv/medec_nepal/20/bin/node
 PassengerStartupFile server.js
 PassengerAppRoot /home/connectf/medec_nepal
 PassengerAppType node
