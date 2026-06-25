@@ -1,4 +1,4 @@
-require('dotenv').config();
+try { require('dotenv').config(); } catch(e) {} // Optional for production as cPanel injects env variables
 const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
