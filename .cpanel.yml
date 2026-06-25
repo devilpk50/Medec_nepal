@@ -2,5 +2,5 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/connectf/medec_nepal
-    - cd $DEPLOYPATH && npm install --omit=dev
-    - cd $DEPLOYPATH && /usr/local/bin/node -e "console.log('Node OK')"
+    - cd $DEPLOYPATH
+    - npm install --omit=dev
