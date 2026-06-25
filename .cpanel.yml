@@ -1,6 +1,5 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/connectf/medecnepal
-    - /bin/cp -r $DEPLOYPATH/../repository/. $DEPLOYPATH
+    - export DEPLOYPATH=/home/connectf/medec_nepal
     - cd $DEPLOYPATH && npm install --omit=dev
