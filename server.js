@@ -62,12 +62,30 @@ const pool = mysql.createPool(dbConfig);
 // Test database connection on startup
 pool.getConnection()
     .then(connection => {
-        console.log('✅ Successfully connected to AppServ MySQL database!');
+        console.log('✅ Successfully connected to MySQL database!');
+        console.log(`   Host: ${dbConfig.host}, DB: ${dbConfig.database}, User: ${dbConfig.user}`);
         connection.release();
     })
     .catch(err => {
-        console.error('❌ MySQL connection error.', err.message);
+        console.error('❌ MySQL connection FAILED:', err.message);
+        console.error('   Check: DB_HOST, DB_USER, DB_PASSWORD, DB_NAME environment variables');
+        console.error('   On cPanel: username prefix required e.g. achyut_medecnepal');
+        // Don't exit — Passenger needs the process alive to serve the error page
     });
+
+// Health check endpoint — visit /api/health to diagnose deployment issues
+app.get('/api/health', async (req, res) => {
+    const status = { server: 'ok', db: 'unknown', env: process.env.NODE_ENV || 'development' };
+    try {
+        const conn = await pool.getConnection();
+        conn.release();
+        status.db = 'connected';
+        res.status(200).json(status);
+    } catch (err) {
+        status.db = 'error: ' + err.message;
+        res.status(500).json(status);
+    }
+});
 
 // API Routes
 // 1. Handle Contact Form Submission
