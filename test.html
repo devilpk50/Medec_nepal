@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Mock Test | Medec Nepal</title>
+  <link href="assets/img/logo.jpg" rel="icon" type="image/jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body { background-color: #f8fafc; font-family: 'Inter', sans-serif; color: #334155; }
+    h1, h2, h3, h4, h5, h6 { font-family: 'Outfit', sans-serif; color: #0f172a; }
+    h1, h2, h3, h4, h5, h6 { font-family: 'Outfit', sans-serif; color: #0f172a; }
+    .timer-box { padding: 8px 20px; border-radius: 50px; font-weight: 700; font-family: monospace; font-size: 1.2rem; background: white; border: 2px solid #ef4444; color: #ef4444; display: inline-block; box-shadow: 0 4px 6px rgba(239, 68, 68, 0.1); }
+    .timer-warning { background: #ef4444 !important; color: white !important; animation: pulse 1s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+    
+    .question-card { background: white; border-radius: 15px; border: 1px solid #e2e8f0; padding: 30px; margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .question-text { font-size: 1.1rem; font-weight: 600; margin-bottom: 20px; color: #0f172a; }
+    .option-label { display: block; padding: 15px 20px; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: 0.2s; font-weight: 500; }
+    .option-label:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .option-input:checked + .option-label { border-color: #0d42ff; background: rgba(13, 66, 255, 0.05); color: #0d42ff; }
+    .option-input { display: none; }
+    
+    .grid-btn { width: 42px; height: 42px; border-radius: 10px; border: 1px solid #cbd5e1; background: white; font-weight: 600; color: #64748b; margin: 5px; transition: 0.2s; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+    .grid-btn:hover { background: #f1f5f9; border-color: #94a3b8; }
+    .grid-btn.answered { background: #10b981; color: white; border-color: #10b981; }
+    .grid-btn.active { border: 2px solid #0d42ff; transform: scale(1.1); font-weight: 800; color: #0d42ff; background: #eff6ff; }
+    .grid-btn.answered.active { border-color: #047857; color: white; }
+    .nav-buttons .btn { font-weight: 600; border-radius: 50px; padding: 12px 30px; }
+    
+    .result-screen { background: white; padding: 50px; border-radius: 20px; text-align: center; margin-top: 50px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+    .score-circle { width: 150px; height: 150px; border-radius: 50%; background: #0d42ff; color: white; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 800; margin: 0 auto 20px; }
+  </style>
+</head>
+<body>
+
+  <!-- Loading State -->
+  <div id="loader" class="text-center py-5 mt-5">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p class="mt-3 text-muted">Preparing your test...</p>
+  </div>
+
+  <!-- Test Interface -->
+  <div id="testInterface" class="d-none">
+    <div class="container py-4">
+      <div class="d-flex justify-content-end mb-3">
+        <div class="timer-box" id="timer"><i class="bi bi-clock-history me-2"></i> 00:00:00</div>
+      </div>
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <form id="testForm">
+            <div id="singleQuestionContainer"></div>
+            
+            <div class="d-flex justify-content-between align-items-center mt-4 mb-5 nav-buttons">
+              <button type="button" class="btn btn-outline-secondary" id="btnPrev" onclick="prevQuestion()"><i class="bi bi-arrow-left me-2"></i> Previous</button>
+              <button type="button" class="btn btn-primary" id="btnNext" onclick="nextQuestion()">Next <i class="bi bi-arrow-right ms-2"></i></button>
+              <button type="button" class="btn btn-success px-5 d-none shadow" id="btnSubmitFinal" onclick="submitTest()">Submit Test <i class="bi bi-check2-circle ms-2"></i></button>
+            </div>
+            
+            <div class="card border-0 shadow-sm mt-5">
+              <div class="card-body p-4 text-center">
+                <h6 class="fw-bold mb-4" style="color: var(--primary);"><i class="bi bi-grid-3x3-gap-fill me-2 text-accent"></i> Question Navigator</h6>
+                <div class="d-flex justify-content-center mb-3 small fw-bold text-muted">
+                  <span class="me-3"><span class="d-inline-block rounded-circle bg-white border me-1" style="width:12px; height:12px;"></span> Unanswered</span>
+                  <span><span class="d-inline-block rounded-circle bg-success me-1" style="width:12px; height:12px;"></span> Answered</span>
+                </div>
+                <div id="questionGrid" class="d-flex flex-wrap justify-content-center"></div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result Screen -->
+  <div id="resultScreen" class="d-none container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div class="result-screen">
+          <h2 class="fw-bold mb-4">Test Completed!</h2>
+          <div class="score-circle">
+            <span id="finalScore">0</span><span class="fs-4 text-white-50">/<span id="totalScore">0</span></span>
+          </div>
+          <h4 class="text-muted mb-4" id="scorePercentage">0%</h4>
+          <p class="mb-4 text-muted">Your answers have been securely recorded in the database.</p>
+          <a href="dashboard.html" class="btn btn-outline-primary rounded-pill px-4">Return to Dashboard</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const testId = urlParams.get('id');
+    let timerInterval;
+    let timeLeft = 0; // in seconds
+    let currentQuestionIndex = 0;
+    let testQuestions = [];
+    let studentAnswers = {};
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!testId) {
+        alert("Invalid Test ID");
+        window.location.replace('dashboard.html');
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/student/mock-tests/${testId}/start`);
+        if (!res.ok) throw new Error('Failed to load test');
+        const data = await res.json();
+        
+        document.getElementById('loader').classList.add('d-none');
+        document.getElementById('testInterface').classList.remove('d-none');
+        
+        testQuestions = data.questions;
+        renderQuestion(currentQuestionIndex);
+        renderGrid();
+        
+        startTimer(data.test.duration_minutes * 60);
+
+      } catch (err) {
+        alert('Authentication failed or test not found.');
+        window.location.replace('login.html');
+      }
+    });
+
+    function renderQuestion(index) {
+      const container = document.getElementById('singleQuestionContainer');
+      if (testQuestions.length === 0) {
+          container.innerHTML = '<div class="alert alert-warning text-center">No questions found.</div>';
+          document.querySelector('.nav-buttons').classList.add('d-none');
+          return;
+      }
+      
+      const q = testQuestions[index];
+      const ans = studentAnswers[q.id] || '';
+
+      container.innerHTML = `
+        <div class="question-card mb-0">
+          <div class="d-flex justify-content-between mb-4 text-muted fw-bold border-bottom pb-3">
+             <span class="text-primary"><i class="bi bi-bookmark-fill me-2"></i> Question ${index + 1} of ${testQuestions.length}</span>
+          </div>
+          <div class="question-text text-dark fs-5 mb-4">
+            ${q.question_text}
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <input type="radio" class="option-input" name="q_${q.id}" id="q_A" value="A" ${ans==='A'?'checked':''} onchange="saveAnswer(${q.id}, 'A')">
+              <label class="option-label" for="q_A"><span class="fw-bold me-2 text-primary">A.</span> ${q.option_a}</label>
+            </div>
+            <div class="col-md-6">
+              <input type="radio" class="option-input" name="q_${q.id}" id="q_B" value="B" ${ans==='B'?'checked':''} onchange="saveAnswer(${q.id}, 'B')">
+              <label class="option-label" for="q_B"><span class="fw-bold me-2 text-primary">B.</span> ${q.option_b}</label>
+            </div>
+            <div class="col-md-6">
+              <input type="radio" class="option-input" name="q_${q.id}" id="q_C" value="C" ${ans==='C'?'checked':''} onchange="saveAnswer(${q.id}, 'C')">
+              <label class="option-label" for="q_C"><span class="fw-bold me-2 text-primary">C.</span> ${q.option_c}</label>
+            </div>
+            <div class="col-md-6">
+              <input type="radio" class="option-input" name="q_${q.id}" id="q_D" value="D" ${ans==='D'?'checked':''} onchange="saveAnswer(${q.id}, 'D')">
+              <label class="option-label" for="q_D"><span class="fw-bold me-2 text-primary">D.</span> ${q.option_d}</label>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('btnPrev').disabled = index === 0;
+      
+      if (index === testQuestions.length - 1) {
+          document.getElementById('btnNext').classList.add('d-none');
+          document.getElementById('btnSubmitFinal').classList.remove('d-none');
+      } else {
+          document.getElementById('btnNext').classList.remove('d-none');
+          document.getElementById('btnSubmitFinal').classList.add('d-none');
+      }
+
+      updateGridActiveState();
+    }
+
+    function saveAnswer(qId, val) {
+        studentAnswers[qId] = val;
+        renderGrid(); 
+    }
+
+    function nextQuestion() {
+        if (currentQuestionIndex < testQuestions.length - 1) {
+            currentQuestionIndex++;
+            renderQuestion(currentQuestionIndex);
+        }
+    }
+
+    function prevQuestion() {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            renderQuestion(currentQuestionIndex);
+        }
+    }
+
+    function jumpToQuestion(index) {
+        currentQuestionIndex = index;
+        renderQuestion(currentQuestionIndex);
+    }
+
+    function renderGrid() {
+        const grid = document.getElementById('questionGrid');
+        if (!grid) return;
+        grid.innerHTML = testQuestions.map((q, idx) => {
+            const isAnswered = studentAnswers[q.id] ? 'answered' : '';
+            const isActive = idx === currentQuestionIndex ? 'active' : '';
+            return `<button type="button" class="grid-btn ${isAnswered} ${isActive}" onclick="jumpToQuestion(${idx})">${idx + 1}</button>`;
+        }).join('');
+    }
+
+    function updateGridActiveState() {
+        document.querySelectorAll('.grid-btn').forEach((btn, idx) => {
+            if (idx === currentQuestionIndex) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+    }
+
+    function startTimer(seconds) {
+      timeLeft = seconds;
+      const timerEl = document.getElementById('timer');
+      
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          timerEl.textContent = "00:00:00";
+          alert("Time is up! Submitting your test automatically.");
+          submitTest();
+          return;
+        }
+
+        const h = Math.floor(timeLeft / 3600).toString().padStart(2, '0');
+        const m = Math.floor((timeLeft % 3600) / 60).toString().padStart(2, '0');
+        const s = (timeLeft % 60).toString().padStart(2, '0');
+        timerEl.innerHTML = `<i class="bi bi-clock-history me-2"></i> ${h}:${m}:${s}`;
+
+        if (timeLeft < 300) { // last 5 minutes
+            timerEl.classList.add('timer-warning');
+        }
+      }, 1000);
+    }
+
+    document.getElementById('testForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        if(confirm("Are you sure you want to submit your test?")) {
+            submitTest();
+        }
+    });
+
+    async function submitTest() {
+        clearInterval(timerInterval);
+        
+        // Answers are already stored in studentAnswers object
+        const answers = studentAnswers;
+
+        // Submit via API
+        try {
+            const res = await fetch(`/api/student/mock-tests/${testId}/submit`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ answers })
+            });
+            const result = await res.json();
+            
+            if (res.ok) {
+                // Show Result Screen
+                document.getElementById('testInterface').classList.add('d-none');
+                document.getElementById('resultScreen').classList.remove('d-none');
+                
+                document.getElementById('finalScore').textContent = result.score;
+                document.getElementById('totalScore').textContent = result.totalQuestions;
+                
+                const percentage = Math.round((result.score / result.totalQuestions) * 100) || 0;
+                document.getElementById('scorePercentage').textContent = `${percentage}%`;
+                
+                const circle = document.querySelector('.score-circle');
+                if (percentage >= 80) circle.style.background = '#10b981'; // Green
+                else if (percentage >= 50) circle.style.background = '#f59e0b'; // Orange
+                else circle.style.background = '#ef4444'; // Red
+            } else {
+                alert(result.error || "Failed to submit test.");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Network error during submission. Please contact support.");
+        }
+    }
+  </script>
+</body>
+</html>

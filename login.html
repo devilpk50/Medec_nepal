@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Login | Medec Nepal</title>
+  <link href="assets/img/logo.jpg" rel="icon" type="image/jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="assets/css/main.css" rel="stylesheet">
+  <style>
+    .auth-bg {
+      background: linear-gradient(135deg, #f7faff 0%, #e0eaf5 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+    }
+    .auth-card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+      padding: 40px;
+    }
+    .auth-btn {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
+      border: 0;
+      padding: 12px 30px;
+      color: #fff;
+      transition: all 0.4s ease-in-out;
+      border-radius: 50px;
+      font-weight: 700;
+      width: 100%;
+      margin-top: 20px;
+    }
+    .auth-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+  </style>
+</head>
+<body class="auth-bg">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-5">
+        <div class="auth-card text-center">
+          <a href="index.html">
+            <img src="assets/img/logo.jpg" alt="Logo" class="rounded-circle mb-3" style="width: 70px; height: 70px;">
+          </a>
+          <h3 class="fw-bold mb-4">Welcome Back</h3>
+          <form id="loginForm" class="text-start">
+            <div class="mb-3">
+              <label class="form-label text-muted">Email Address</label>
+              <input type="email" class="form-control" id="email" required style="border-radius: 10px; padding: 12px;">
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-muted">Password</label>
+              <div class="position-relative">
+                <input type="password" class="form-control" id="password" required style="border-radius: 10px; padding: 12px; padding-right: 40px;">
+                <i class="bi bi-eye position-absolute" id="togglePassword" style="top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer; color: #6c757d;"></i>
+              </div>
+            </div>
+            <div id="login-error" class="text-danger d-none fw-bold small mb-2"></div>
+            <button type="submit" class="auth-btn" id="loginBtn">Log In</button>
+          </form>
+          <div class="mt-4 text-muted">
+            Don't have an account? <a href="register.html" class="text-accent fw-bold text-decoration-none">Sign up here</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    
+    togglePassword.addEventListener('click', function () {
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      this.classList.toggle('bi-eye');
+      this.classList.toggle('bi-eye-slash');
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const errorEl = document.getElementById('login-error');
+      const btn = document.getElementById('loginBtn');
+      
+      errorEl.classList.add('d-none');
+      btn.innerText = 'Logging in...';
+
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          localStorage.setItem('user', JSON.stringify(result.user));
+          if (result.user.role === 'admin') {
+            window.location.href = 'admin.html';
+          } else {
+            window.location.href = 'dashboard.html';
+          }
+        } else {
+          errorEl.innerText = result.error;
+          errorEl.classList.remove('d-none');
+          btn.innerText = 'Log In';
+        }
+      } catch (err) {
+        errorEl.innerText = 'Failed to connect to server.';
+        errorEl.classList.remove('d-none');
+        btn.innerText = 'Log In';
+      }
+    });
+  </script>
+</body>
+</html>

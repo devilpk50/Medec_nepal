@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Student Dashboard | Medec Nepal</title>
+  <link href="assets/img/logo.jpg" rel="icon" type="image/jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="assets/css/main.css" rel="stylesheet">
+  <style>
+    body { 
+      background-color: #f8fafc; 
+      color: #334155;
+      font-family: 'Inter', sans-serif;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      color: #0f172a;
+      font-family: 'Outfit', sans-serif;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      background: white;
+      min-height: 100vh;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.03);
+      position: fixed;
+      left: 0;
+      top: 0;
+      padding-top: 20px;
+      z-index: 1000;
+    }
+    .sidebar .nav-link {
+      color: #64748b;
+      font-weight: 500;
+      padding: 12px 20px;
+      border-radius: 0 50px 50px 0;
+      margin-right: 20px;
+      transition: all 0.3s;
+    }
+    .sidebar .nav-link:hover, .sidebar .nav-link.active {
+      background: rgba(14, 29, 52, 0.05);
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .sidebar i { margin-right: 10px; }
+
+    /* Main Content */
+    .main-content {
+      margin-left: 250px;
+      padding: 40px;
+    }
+    .welcome-banner {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      color: #ffffff !important;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(13, 66, 255, 0.2);
+      margin-bottom: 40px;
+    }
+    .welcome-banner h2, .welcome-banner p {
+      color: #ffffff !important;
+    }
+    .course-card {
+      background: white;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid #e2e8f0;
+    }
+    .course-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      border-color: transparent;
+    }
+    .course-card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      background: #f1f5f9;
+    }
+    .course-card .card-body { padding: 25px; }
+    .text-muted { color: #64748b !important; }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar d-flex flex-column">
+    <div class="text-center mb-5 mt-2">
+      <img src="assets/img/logo.jpg" alt="Logo" class="rounded-circle" style="width: 60px; height: 60px;">
+      <h5 class="fw-bold mt-2 mb-0" style="color: var(--primary);">Medec Nepal</h5>
+    </div>
+    
+    <ul class="nav flex-column mb-auto">
+      <li class="nav-item">
+        <a href="#" class="nav-link active" id="navDashboard"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link"><i class="bi bi-play-circle-fill"></i> My Courses</a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link" id="navStudy"><i class="bi bi-book-fill"></i> Study Materials</a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link" id="navTests"><i class="bi bi-ui-checks"></i> Mock Tests</a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link" id="navResults"><i class="bi bi-bar-chart-fill"></i> My Results</a>
+      </li>
+    </ul>
+
+    <ul class="nav flex-column mb-4">
+      <li class="nav-item">
+        <a href="#" class="nav-link text-danger" id="logoutBtn"><i class="bi bi-box-arrow-right"></i> Log Out</a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    
+    <!-- Skeleton Loader (shows while fetching data) -->
+    <div id="loader" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2 text-muted">Securing session...</p>
+    </div>
+
+    <!-- Dashboard Data -->
+    <div id="dashboardData" class="d-none">
+      
+      <div id="dashboardHome">
+        <!-- Welcome Banner -->
+        <div class="welcome-banner">
+          <h2 class="fw-bold mb-2">Welcome back, <span id="studentName">Student</span>! 👋</h2>
+          <p class="mb-0 opacity-75">Ready to continue your medical journey today?</p>
+        </div>
+
+        <!-- My Enrolled Courses -->
+        <h4 class="fw-bold mb-4" style="color: var(--primary);"><i class="bi bi-mortarboard-fill me-2 text-accent"></i> My Learning</h4>
+        <div class="row g-4 mb-5" id="enrolledCoursesList">
+          <!-- JS Injected Enrolled Courses -->
+          <div class="col-12 text-muted" id="noEnrolled">You haven't enrolled in any courses yet.</div>
+        </div>
+      </div>
+
+      <!-- Available Courses -->
+      <div id="coursesSection">
+        <h4 class="fw-bold mb-4 mt-5" style="color: var(--primary);"><i class="bi bi-compass-fill me-2 text-accent"></i> Discover Courses</h4>
+        <div class="row g-4" id="availableCoursesList">
+          <!-- JS Injected Available Courses -->
+        </div>
+      </div>
+
+      <!-- Mock Tests Section -->
+      <div id="mockTestsSection" class="d-none">
+        <div class="d-flex justify-content-between align-items-center mb-4 mt-5">
+          <h4 class="fw-bold mb-0" style="color: var(--primary);"><i class="bi bi-ui-checks me-2 text-accent"></i> Available Mock Tests</h4>
+        </div>
+        <div class="row g-4" id="studentMockTestsList">
+          <div class="col-12 text-muted">Loading mock tests...</div>
+        </div>
+      </div>
+
+      <!-- Results Section -->
+      <div id="resultsSection" class="d-none">
+        <h4 class="fw-bold mb-4 mt-5" style="color: var(--primary);"><i class="bi bi-bar-chart-fill me-2 text-accent"></i> My Past Attempts</h4>
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Test Name</th>
+                    <th>Score</th>
+                    <th>Percentage</th>
+                    <th>Date Taken</th>
+                  </tr>
+                </thead>
+                <tbody id="studentResultsTable">
+                  <tr><td colspan="4" class="text-center text-muted py-4">Loading your results...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // 1. Session Bouncer: Fetch user data on load
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        // Instant role guard using localStorage (set at login)
+        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        if (!storedUser.role) { window.location.replace('login.html'); return; }
+        if (storedUser.role === 'admin') { window.location.replace('admin.html'); return; }
+
+        const response = await fetch('/api/me');
+        if (!response.ok) {
+          window.location.replace('login.html');
+          return;
+        }
+
+        const data = await response.json();
+
+        // Show data
+        document.getElementById('loader').classList.add('d-none');
+        document.getElementById('dashboardData').classList.remove('d-none');
+        
+        // Greet user
+        document.getElementById('studentName').innerHTML = `${data.user.name} <span class="badge bg-light text-primary fs-6 ms-2" style="vertical-align: middle;">${data.user.medec_id}</span>`;
+
+        // Render Enrolled Courses
+        if (data.enrolled_courses && data.enrolled_courses.length > 0) {
+          document.getElementById('noEnrolled').classList.add('d-none');
+          // Render logic would go here
+        }
+
+        // Fetch and Render Available Courses & Tests
+        fetchAvailableCourses();
+        fetchStudentMockTests();
+
+      } catch (err) {
+        window.location.replace('login.html');
+      }
+    });
+
+    // Navigation Logic
+    document.getElementById('navDashboard').addEventListener('click', (e) => switchStudentTab(e, 'dashboardSection'));
+    document.getElementById('navTests').addEventListener('click', (e) => switchStudentTab(e, 'mockTestsSection'));
+    document.getElementById('navResults').addEventListener('click', (e) => switchStudentTab(e, 'resultsSection'));
+    
+    function switchStudentTab(e, sectionId) {
+        e.preventDefault();
+        document.querySelectorAll('.sidebar .nav-link').forEach(el => el.classList.remove('active'));
+        e.target.closest('a').classList.add('active');
+        
+        document.getElementById('dashboardHome').classList.add('d-none');
+        document.getElementById('coursesSection').classList.add('d-none');
+        document.getElementById('mockTestsSection').classList.add('d-none');
+        document.getElementById('resultsSection').classList.add('d-none');
+        
+        if (sectionId === 'dashboardSection') {
+            document.getElementById('dashboardHome').classList.remove('d-none');
+            document.getElementById('coursesSection').classList.remove('d-none');
+        } else if (sectionId === 'resultsSection') {
+            document.getElementById('resultsSection').classList.remove('d-none');
+            openStudentResults();
+        } else {
+            document.getElementById(sectionId).classList.remove('d-none');
+        }
+    }
+
+    // 2. Fetch all courses
+    async function fetchAvailableCourses() {
+      try {
+        const res = await fetch('/api/courses');
+        const data = await res.json();
+        const container = document.getElementById('availableCoursesList');
+        
+        data.courses.forEach(course => {
+          container.innerHTML += `
+            <div class="col-xl-4 col-md-6">
+              <div class="course-card">
+                <img src="${course.image_url}" alt="${course.title}">
+                <div class="card-body">
+                  <h5 class="fw-bold mb-2">${course.title}</h5>
+                  <p class="text-muted small mb-3">${course.description}</p>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-accent mb-0">NPR ${course.price}</h6>
+                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3">Enroll</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // 3. Fetch Mock Tests
+    async function fetchStudentMockTests() {
+      try {
+        const res = await fetch('/api/student/mock-tests');
+        const data = await res.json();
+        const container = document.getElementById('studentMockTestsList');
+        
+        if (data.tests.length === 0) {
+            container.innerHTML = '<div class="col-12 text-muted">No mock tests available currently.</div>';
+            return;
+        }
+
+        container.innerHTML = data.tests.map(t => {
+            let resultHtml = '';
+            if (t.last_score !== null) {
+                const percentage = Math.round((t.last_score / t.last_total) * 100);
+                const colorClass = percentage >= 50 ? 'text-success' : 'text-danger';
+                resultHtml = `<div class="mt-3 p-2 bg-light rounded text-center small fw-bold">Latest Score: <span class="${colorClass}">${t.last_score} / ${t.last_total}</span> (${percentage}%)</div>`;
+            }
+
+            return `
+            <div class="col-xl-4 col-md-6">
+              <div class="course-card h-100 p-0 d-flex flex-column">
+                <div class="card-body d-flex flex-column">
+                  <h5 class="fw-bold mb-2">${t.title}</h5>
+                  <p class="text-muted small mb-3" style="flex-grow: 1;">${t.description}</p>
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge bg-primary px-3 py-2"><i class="bi bi-clock me-1"></i> ${t.duration_minutes} mins</span>
+                    ${t.last_score !== null 
+                        ? `<button class="btn btn-sm btn-secondary rounded-pill px-3 fw-bold" disabled>Completed <i class="bi bi-check-circle"></i></button>`
+                        : `<button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" onclick="window.location.href='test.html?id=${t.id}'">Start Test</button>`
+                    }
+                  </div>
+                  ${resultHtml}
+                </div>
+              </div>
+            </div>
+            `;
+        }).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    async function openStudentResults() {
+        try {
+            const res = await fetch('/api/student/mock-tests/attempts');
+            const data = await res.json();
+            
+            const container = document.getElementById('studentResultsTable');
+            if (data.attempts.length === 0) {
+                container.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">You have not taken any tests yet.</td></tr>';
+            } else {
+                container.innerHTML = data.attempts.map(a => {
+                    const percentage = Math.round((a.score / a.total_questions) * 100);
+                    const badgeClass = percentage >= 50 ? 'bg-success' : 'bg-danger';
+                    return `
+                    <tr>
+                        <td class="fw-bold">${a.test_title}</td>
+                        <td><span class="badge ${badgeClass} fs-6">${a.score} / ${a.total_questions}</span></td>
+                        <td><span class="text-muted fw-bold">${percentage}%</span></td>
+                        <td>${new Date(a.completed_at).toLocaleString()}</td>
+                    </tr>
+                    `;
+                }).join('');
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    // 4. Logout Functionality
+    document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await fetch('/api/logout', { method: 'POST' });
+      localStorage.removeItem('user');
+      window.location.replace('login.html');
+    });
+  </script>
+</body>
+</html>

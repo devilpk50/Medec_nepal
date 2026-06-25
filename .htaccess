@@ -1,0 +1,8 @@
+# Passenger/Apache proxy to Node.js app
+# This tells cPanel's Apache to forward all requests to your Node server
+
+PassengerEnabled on
+PassengerNodejs /usr/local/bin/node
+
+# If your host uses a different setup, they may not need this file.
+# The Node.js App Manager in cPanel usually handles this automatically.

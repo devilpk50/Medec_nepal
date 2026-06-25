@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Register | Medec Nepal</title>
+  <link href="assets/img/logo.jpg" rel="icon" type="image/jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="assets/css/main.css" rel="stylesheet">
+  <style>
+    .auth-bg {
+      background: linear-gradient(135deg, #f7faff 0%, #e0eaf5 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+    }
+    .auth-card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+      padding: 40px;
+    }
+    .auth-btn {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
+      border: 0;
+      padding: 12px 30px;
+      color: #fff;
+      transition: all 0.4s ease-in-out;
+      border-radius: 50px;
+      font-weight: 700;
+      width: 100%;
+      margin-top: 20px;
+    }
+    .auth-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+  </style>
+</head>
+<body class="auth-bg">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-5">
+        <div class="auth-card text-center">
+          <a href="index.html">
+            <img src="assets/img/logo.jpg" alt="Logo" class="rounded-circle mb-3" style="width: 70px; height: 70px;">
+          </a>
+          <h3 class="fw-bold mb-4">Create an Account</h3>
+          <form id="registerForm" class="text-start">
+            <div class="mb-3">
+              <label class="form-label text-muted">Full Name</label>
+              <input type="text" class="form-control" id="name" required style="border-radius: 10px; padding: 12px;">
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-muted">Email Address</label>
+              <input type="email" class="form-control" id="email" required style="border-radius: 10px; padding: 12px;">
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-muted">Contact Number</label>
+              <input type="tel" class="form-control" id="phone" required minlength="7" style="border-radius: 10px; padding: 12px;">
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-muted">Password</label>
+              <div class="position-relative">
+                <input type="password" class="form-control" id="password" required minlength="6" style="border-radius: 10px; padding: 12px; padding-right: 40px;" onkeyup="checkPasswordStrength()">
+                <i class="bi bi-eye position-absolute" id="togglePassword" style="top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer; color: #6c757d;"></i>
+              </div>
+              <div id="password-strength" class="small mt-1 text-start" style="font-size: 12px; display: none;"></div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-muted">Confirm Password</label>
+              <div class="position-relative">
+                <input type="password" class="form-control" id="confirm-password" required minlength="6" style="border-radius: 10px; padding: 12px; padding-right: 40px;">
+                <i class="bi bi-eye position-absolute" id="toggleConfirmPassword" style="top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer; color: #6c757d;"></i>
+              </div>
+            </div>
+            <div id="register-error" class="text-danger d-none fw-bold small mb-2"></div>
+            <div id="register-success" class="text-success d-none fw-bold small mb-2"></div>
+            <button type="submit" class="auth-btn" id="registerBtn">Sign Up</button>
+          </form>
+          <div class="mt-4 text-muted">
+            Already have an account? <a href="login.html" class="text-accent fw-bold text-decoration-none">Log in here</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+    const confirmPasswordInput = document.getElementById('confirm-password');
+    
+    togglePassword.addEventListener('click', function () {
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      this.classList.toggle('bi-eye');
+      this.classList.toggle('bi-eye-slash');
+    });
+
+    toggleConfirmPassword.addEventListener('click', function () {
+      const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      confirmPasswordInput.setAttribute('type', type);
+      this.classList.toggle('bi-eye');
+      this.classList.toggle('bi-eye-slash');
+    });
+
+    function checkPasswordStrength() {
+      const password = document.getElementById('password').value;
+      const strengthIndicator = document.getElementById('password-strength');
+      
+      strengthIndicator.style.display = 'block';
+      if (password.length === 0) {
+        strengthIndicator.style.display = 'none';
+      } else if (password.length < 6) {
+        strengthIndicator.innerText = 'Password must be at least 6 characters.';
+        strengthIndicator.className = 'small mt-1 text-danger text-start fw-bold';
+      } else if (password.length >= 6 && !/[A-Z]/.test(password) && !/[0-9]/.test(password)) {
+        strengthIndicator.innerText = 'Weak: Try adding numbers or uppercase letters.';
+        strengthIndicator.className = 'small mt-1 text-warning text-start fw-bold';
+      } else {
+        strengthIndicator.innerText = 'Strong Password!';
+        strengthIndicator.className = 'small mt-1 text-success text-start fw-bold';
+      }
+    }
+
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const phone = document.getElementById('phone').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+      const errorEl = document.getElementById('register-error');
+      const successEl = document.getElementById('register-success');
+      const btn = document.getElementById('registerBtn');
+      
+      errorEl.classList.add('d-none');
+      successEl.classList.add('d-none');
+      
+      if (password !== confirmPassword) {
+        errorEl.innerText = 'Passwords do not match.';
+        errorEl.classList.remove('d-none');
+        return;
+      }
+      
+      btn.innerText = 'Creating account...';
+
+      try {
+        const response = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, phone, password })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          successEl.innerText = result.message;
+          successEl.classList.remove('d-none');
+          document.getElementById('registerForm').reset();
+          btn.innerText = 'Sign Up';
+          setTimeout(() => window.location.href = 'login.html', 2000);
+        } else {
+          errorEl.innerText = result.error;
+          errorEl.classList.remove('d-none');
+          btn.innerText = 'Sign Up';
+        }
+      } catch (err) {
+        errorEl.innerText = 'Failed to connect to server.';
+        errorEl.classList.remove('d-none');
+        btn.innerText = 'Sign Up';
+      }
+    });
+  </script>
+</body>
+</html>
