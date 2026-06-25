@@ -7,8 +7,8 @@ node_modules/
 .env.local
 .env.*.local
 
-# Database dump (large, sensitive)
-medecnepal_export.sql
+# Database files — NEVER commit SQL dumps or schema files
+*.sql
 
 # Test/setup scripts (not needed on server)
 db_test.js
