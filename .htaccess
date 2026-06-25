@@ -1,20 +1,9 @@
-# Passenger/Apache proxy to Node.js app
-# Routes ALL requests (including /api/*) through the Node.js Passenger app
+# cPanel Passenger — Node.js App Configuration
+# Passenger handles ALL requests and passes them to Node.js automatically.
+# DO NOT add RewriteRules pointing to server.js — that serves it as a static file!
 
 PassengerEnabled on
 PassengerNodejs /usr/local/bin/node
 PassengerStartupFile server.js
 PassengerAppRoot /home/connectf/medec_nepal
 PassengerAppType node
-
-# Forward everything to Node.js via Passenger
-Options -MultiViews
-RewriteEngine On
-
-# Allow direct access to real static files (assets, html, etc.)
-RewriteCond %{REQUEST_FILENAME} -f [OR]
-RewriteCond %{REQUEST_FILENAME} -d
-RewriteRule ^ - [L]
-
-# Send all other requests (especially /api/*) to Passenger/Node.js
-RewriteRule ^ /server.js [L]
