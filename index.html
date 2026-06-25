@@ -529,11 +529,20 @@
 
       // Fetch dynamic public courses
       async function loadPublicCourses() {
+        const container = document.getElementById('dynamicCoursesList');
         try {
           const res = await fetch('/api/public/courses');
-          if (!res.ok) return;
+          if (!res.ok) {
+            console.error('Courses API error:', res.status, res.statusText);
+            container.innerHTML = `
+              <div class="col-12 text-center py-4">
+                <i class="bi bi-exclamation-circle text-warning" style="font-size:2rem;"></i>
+                <p class="text-muted mt-2">Could not load courses right now.</p>
+                <button class="btn btn-outline-primary btn-sm rounded-pill mt-1" onclick="loadPublicCourses()">Retry</button>
+              </div>`;
+            return;
+          }
           const data = await res.json();
-          const container = document.getElementById('dynamicCoursesList');
           if (data.courses && data.courses.length > 0) {
             container.innerHTML = data.courses.map((c, idx) => {
               const delay = idx * 100;
@@ -557,17 +566,34 @@
           } else {
             container.innerHTML = '<div class="col-12 text-center text-muted">Courses coming soon...</div>';
           }
-        } catch (e) { console.error('Error loading courses', e); }
+        } catch (e) {
+          console.error('Error loading courses:', e);
+          container.innerHTML = `
+            <div class="col-12 text-center py-4">
+              <i class="bi bi-wifi-off text-warning" style="font-size:2rem;"></i>
+              <p class="text-muted mt-2">Server not reachable. Please try again later.</p>
+              <button class="btn btn-outline-primary btn-sm rounded-pill mt-1" onclick="loadPublicCourses()">Retry</button>
+            </div>`;
+        }
       }
       loadPublicCourses();
 
       // Fetch dynamic public faculty
       async function loadPublicFaculty() {
+        const container = document.getElementById('dynamicFacultyList');
         try {
           const res = await fetch('/api/public/faculty');
-          if (!res.ok) return;
+          if (!res.ok) {
+            console.error('Faculty API error:', res.status, res.statusText);
+            container.innerHTML = `
+              <div class="col-12 text-center py-4">
+                <i class="bi bi-exclamation-circle text-warning" style="font-size:2rem;"></i>
+                <p class="text-muted mt-2">Could not load faculty profiles right now.</p>
+                <button class="btn btn-outline-primary btn-sm rounded-pill mt-1" onclick="loadPublicFaculty()">Retry</button>
+              </div>`;
+            return;
+          }
           const data = await res.json();
-          const container = document.getElementById('dynamicFacultyList');
           if (data.faculty && data.faculty.length > 0) {
             container.innerHTML = data.faculty.map((f, idx) => `
               <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="${100 + ((idx%3)*100)}">
@@ -582,7 +608,15 @@
           } else {
             container.innerHTML = '<div class="col-12 text-center text-muted">Faculty profiles coming soon...</div>';
           }
-        } catch (e) { console.error('Error loading faculty', e); }
+        } catch (e) {
+          console.error('Error loading faculty:', e);
+          container.innerHTML = `
+            <div class="col-12 text-center py-4">
+              <i class="bi bi-wifi-off text-warning" style="font-size:2rem;"></i>
+              <p class="text-muted mt-2">Server not reachable. Please try again later.</p>
+              <button class="btn btn-outline-primary btn-sm rounded-pill mt-1" onclick="loadPublicFaculty()">Retry</button>
+            </div>`;
+        }
       }
       loadPublicFaculty();
     });
